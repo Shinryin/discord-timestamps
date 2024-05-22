@@ -1,0 +1,201 @@
+              <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Easy Discord Timestamps</title>
+                  <style>
+                      body {
+                          font-family: Arial, sans-serif;
+                          display: flex;
+                          flex-direction: column;
+                          align-items: center;
+                          justify-content: center;
+                          height: 100vh;
+                          margin: 0;
+                          background-color: #000;
+                          color: #fff;
+                      }
+                      .container {
+                          text-align: center;
+                      }
+                      input, button, select {
+                          margin: 10px;
+                          padding: 10px;
+                          font-size: 16px;
+                          border: 1px solid #fff;
+                          background: #000;
+                          color: #fff;
+                      }
+                      input[type="text"] {
+                          width: 300px;
+                      }
+                      .preview-container {
+                          margin-top: 20px;
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                          background: #000;
+                          padding: 20px;
+                          border-radius: 5px;
+                          box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+                      }
+                      .preview {
+                          background: #000;
+                          border: 1px solid #b9bbbe;
+                          padding: 10px;
+                          border-radius: 5px;
+                          font-size: 18px;
+                      }
+                      .preview .timestamp {
+                          color: #b9bbbe;
+                          background-color: #2f3136;
+                          padding: 2px 4px;
+                          border-radius: 3px;
+                      }
+                  </style>
+              </head>
+              <body>
+                  <div class="container">
+                      <h1>Easy Discord Timestamps</h1>
+                      <select id="timestamp-format">
+                          <option value="R">Relative time</option>
+                          <option value="t">Simple time</option>
+                          <option value="T">Full time</option>
+                          <option value="d">Simple date</option>
+                          <option value="D">Full date</option>
+                          <option value="f">Full date and simple time</option>
+                          <option value="F">Full date with weekday and simple time</option>
+                      </select>
+                      <select id="time-unit">
+                          <option value="second">Seconds</option>
+                          <option value="minute" selected>Minutes</option>
+                          <option value="hour">Hours</option>
+                          <option value="day">Days</option>
+                      </select>
+                      <input type="number" id="time-amount" placeholder="Enter amount" min="1">
+                      <select id="time-direction">
+                          <option value="future">Future</option>
+                          <option value="past">Past</option>
+                      </select>
+                      <button onclick="generateTimestamp()">Create Timestamp</button>
+                      <input type="text" id="timestamp-output" readonly>
+                      <button onclick="copyToClipboard()">Copy to Clipboard</button>
+                      <div class="preview-container">
+                          <div class="preview">
+                              Discord Preview: <span class="timestamp" id="preview-value">Waiting...</span>
+                          </div>
+                      </div>
+                  </div>
+
+                  <script>
+                      let previewTimestamp;
+                      let previewFormat;
+
+                      function generateTimestamp() {
+                          const timeUnit = document.getElementById('time-unit').value;
+                          const timeAmount = parseInt(document.getElementById('time-amount').value);
+                          const timeDirection = document.getElementById('time-direction').value;
+                          const timestampFormat = document.getElementById('timestamp-format').value;
+                          let date = new Date();
+                          if (!isNaN(timeAmount) && timeAmount > 0) {
+                              if (timeDirection === 'future') {
+                                  switch(timeUnit) {
+                                      case 'second':
+                                          date.setSeconds(date.getSeconds() + timeAmount);
+                                          break;
+                                      case 'minute':
+                                          date.setMinutes(date.getMinutes() + timeAmount);
+                                          break;
+                                      case 'hour':
+                                          date.setHours(date.getHours() + timeAmount);
+                                          break;
+                                      case 'day':
+                                          date.setDate(date.getDate() + timeAmount);
+                                          break;
+                                  }
+                              } else {
+                                  switch(timeUnit) {
+                                      case 'second':
+                                          date.setSeconds(date.getSeconds() - timeAmount);
+                                          break;
+                                      case 'minute':
+                                          date.setMinutes(date.getMinutes() - timeAmount);
+                                          break;
+                                      case 'hour':
+                                          date.setHours(date.getHours() - timeAmount);
+                                          break;
+                                      case 'day':
+                                          date.setDate(date.getDate() - timeAmount);
+                                          break;
+                                  }
+                              }
+                              const timestamp = Math.floor(date.getTime() / 1000);
+                              previewTimestamp = timestamp;
+                              previewFormat = timestampFormat;
+                              document.getElementById('timestamp-output').value = `<t:${timestamp}:${timestampFormat}>`;
+                              updatePreview();
+                          } else {
+                              alert('Please enter a valid amount of time.');
+                          }
+                      }
+
+                      function updatePreview() {
+                          if (previewTimestamp && previewFormat) {
+                              const date = new Date(previewTimestamp * 1000);
+                              document.getElementById('preview-value').textContent = getFormattedTime(date, previewFormat);
+                          }
+                      }
+
+                      function getFormattedTime(date, format) {
+                          switch (format) {
+                              case 't':
+                                  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                              case 'T':
+                                  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                              case 'd':
+                                  return date.toLocaleDateString('en-US');
+                              case 'D':
+                                  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                              case 'f':
+                                  return `${date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+                              case 'F':
+                                  return `${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+                              case 'R':
+                              default:
+                                  return getRelativeTime(date);
+                          }
+                      }
+
+                      function getRelativeTime(date) {
+                          const now = new Date();
+                          const diff = (date - now) / 1000;
+                          const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+                          if (Math.abs(diff) < 60) {
+                              const seconds = Math.round(diff);
+                              return seconds === 1 ? "in a second" : seconds === -1 ? "a second ago" : rtf.format(seconds, 'seconds');
+                          } else if (Math.abs(diff) < 3600) {
+                              const minutes = Math.round(diff / 60);
+                              return minutes === 1 ? "in a minute" : minutes === -1 ? "a minute ago" : rtf.format(minutes, 'minutes');
+                          } else if (Math.abs(diff) < 86400) {
+                              const hours = Math.round(diff / 3600);
+                              return hours === 1 ? "in an hour" : hours === -1 ? "an hour ago" : rtf.format(hours, 'hours');
+                          } else {
+                              const days = Math.round(diff / 86400);
+                              return days === 1 ? "in a day" : days === -1 ? "a day ago" : rtf.format(days, 'days');
+                          }
+                      }
+
+                      function copyToClipboard() {
+                          const copyText = document.getElementById('timestamp-output');
+                          copyText.select();
+                          copyText.setSelectionRange(0, 99999);
+                          document.execCommand("copy");
+                          alert("Timestamp copied to clipboard!");
+                      }
+
+                      setInterval(updatePreview, 1000);
+                  </script>
+              </body>
+              </html>
